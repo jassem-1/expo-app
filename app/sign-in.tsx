@@ -5,16 +5,30 @@ import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Redirect } from "expo-router";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
+import { login } from "@/lib/appwrite";
+import { useGlobalContext } from "@/lib/global-provider";
 
 const SignIn = () => {
-  const handleLogin = async () => {};
+  const { refetch, isLogged, loading } = useGlobalContext();
+  const handleLogin = async () => {
+    const result = await login();
+    if (result) {
+      if (!loading && isLogged) {
+        <Redirect href="/" />;
+      } else {
+        await refetch({});
+      }
+    } else {
+      console.error("Failed to login");
+    }
+  };
 
   return (
     <SafeAreaView className="bg-white flex-1">
-      <ScrollView className="p-6 bg-">
+      <ScrollView className="p-6">
         <Image
           source={images.onboarding}
-          className="w-full h-[550px]"
+          className="w-full h-[450px]"
           resizeMode="contain"
         />
 
@@ -48,9 +62,6 @@ const SignIn = () => {
             </View>
           </TouchableOpacity>
         </View>
-        <Text className="text-lg font-rubik text-black-200 text-center mt-12">
-          Login to Real Scout with Google
-        </Text>
       </ScrollView>
     </SafeAreaView>
   );
