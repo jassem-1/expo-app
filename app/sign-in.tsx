@@ -1,25 +1,28 @@
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-
-import { Redirect } from "expo-router";
+import { useRouter } from "expo-router"; // For navigation and redirection
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { login } from "@/lib/appwrite";
 import { useGlobalContext } from "@/lib/global-provider";
 
 const SignIn = () => {
-  const { refetch, isLogged, loading } = useGlobalContext();
+  const { refetch } = useGlobalContext();
+  const router = useRouter(); // Use router for redirection
+
   const handleLogin = async () => {
-    const result = await login();
-    if (result) {
-      if (!loading && isLogged) {
-        <Redirect href="/" />;
+    try {
+      const result = await login();
+      if (result) {
+        console.log("Login successful");
+        await refetch({}); // Refetch global context or user state if necessary
+        router.replace("/"); // Redirect to "/" after successful login
       } else {
-        await refetch({});
+        console.error("Failed to login");
       }
-    } else {
-      console.error("Failed to login");
+    } catch (error) {
+      console.error("Error during login:", error);
     }
   };
 

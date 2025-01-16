@@ -1,35 +1,107 @@
-import { logout } from "@/lib/appwrite";
-import { Link } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useEffect } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Index() {
-  const handleLogout = async () => {
-    const result = await logout();
-    if (result) {
-      console.log("Logout success");
-    } else {
-      console.error("Failed to logout");
-    }
-  };
+import icons from "@/constants/icons";
+
+import Search from "@/components/Search";
+import Filters from "@/components/Filters";
+import { Card, FeaturedCard } from "@/components/Cards";
+
+import { useAppwrite } from "@/lib/useAppwrite";
+import { useGlobalContext } from "@/lib/global-provider";
+
+const Home = () => {
+  const { user } = useGlobalContext();
+
+  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
+
+  const handleCardPress = (id: string) => router.push(`/properties/${id}`);
+
   return (
-    <GestureHandlerRootView>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <TouchableOpacity onPress={handleLogout}>
-          <Text>LOGOUT</Text>
-        </TouchableOpacity>
-        <Text className="bg-red-400 ">Home</Text>
-        <Text className="text-2xl font-rubik">Test font</Text>
-        <Link href="/sign-in">
-          <Text>Sign in</Text>
-        </Link>
-      </View>
-    </GestureHandlerRootView>
+    <SafeAreaView className="h-full bg-white">
+      <FlatList
+        data={[1, 2, 3, 4, 5]}
+        numColumns={2}
+        renderItem={({ item }) => <Card />}
+        keyExtractor={(item) => item.toString()}
+        contentContainerClassName="pb-32"
+        columnWrapperClassName="flex gap-5 px-5"
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={() => (
+          <View className="px-5">
+            <View className="flex flex-row items-center justify-between mt-5">
+              <View className="flex flex-row">
+                <Image
+                  source={{ uri: user?.avatar }}
+                  className="size-12 rounded-full"
+                />
+
+                <View className="flex flex-col items-start ml-2 justify-center">
+                  <Text className="text-xs font-rubik text-black-100">
+                    Good Morning
+                  </Text>
+                  <Text className="text-base font-rubik-medium text-black-300">
+                    {user?.name}
+                  </Text>
+                </View>
+              </View>
+              <Image source={icons.bell} className="size-6" />
+            </View>
+
+            <Search />
+
+            <View className="my-5">
+              <View className="flex flex-row items-center justify-between">
+                <Text className="text-xl font-rubik-bold text-black-300">
+                  Featured
+                </Text>
+                <TouchableOpacity>
+                  <Text className="text-base font-rubik-bold text-primary-300">
+                    See all
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <FlatList
+                data={[1, 2, 3, 4, 5]}
+                renderItem={({ item }) => <FeaturedCard />}
+                keyExtractor={(item) => item.toString()}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="flex gap-5 mt-5"
+              />
+            </View>
+
+            {/* <Button title="seed" onPress={seed} /> */}
+
+            <View className="mt-5">
+              <View className="flex flex-row items-center justify-between">
+                <Text className="text-xl font-rubik-bold text-black-300">
+                  Our Recommendation
+                </Text>
+                <TouchableOpacity>
+                  <Text className="text-base font-rubik-bold text-primary-300">
+                    See all
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Filters />
+            </View>
+          </View>
+        )}
+      />
+    </SafeAreaView>
   );
-}
+};
+
+export default Home;

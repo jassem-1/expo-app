@@ -20,33 +20,49 @@ export async function login() {
   try {
     const redirectUri = Linking.createURL("/");
 
+    // Step 1: Get the OAuth2 token
     const response = await account.createOAuth2Token(
       OAuthProvider.Google,
       redirectUri
     );
-    if (!response) throw new Error("Create OAuth2 token failed");
+    if (!response) throw new Error("Failed to create OAuth2 token");
 
+    // Step 2: Open the browser session for OAuth
     const browserResult = await openAuthSessionAsync(
       response.toString(),
       redirectUri
     );
-    if (browserResult.type !== "success")
-      throw new Error("Create OAuth2 token failed");
+    if (browserResult.type !== "success") {
+      throw new Error("OAuth2 flow not completed successfully");
+    }
 
+    // Step 3: Parse the redirect URL for userId and secret
     const url = new URL(browserResult.url);
-    const secret = url.searchParams.get("secret")?.toString();
-    const userId = url.searchParams.get("userId")?.toString();
-    if (!secret || !userId) throw new Error("Create OAuth2 token failed");
+    const secret = url.searchParams.get("secret");
+    const userId = url.searchParams.get("userId");
+    if (!secret || !userId) {
+      throw new Error("Missing userId or secret from redirect URL");
+    }
 
+    // Step 4: Create a session with userId and secret
     const session = await account.createSession(userId, secret);
+
     if (!session) throw new Error("Failed to create session");
+    await account.get(); // This refreshes the client state and ensures the session is active
+
+    console.log("Login successful:", session);
 
     return true;
   } catch (error) {
-    console.error(error);
+    if (error instanceof Error) {
+      console.error("Login error:", error.message);
+    } else {
+      console.error("Login error:", error);
+    }
     return false;
   }
 }
+
 export async function logout() {
   try {
     const result = await account.deleteSession("current");
